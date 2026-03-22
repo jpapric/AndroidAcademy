@@ -29,3 +29,20 @@ bin/
 .DS_Store
 
 *.pdf
+
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+gradlew
+gradlew.bat
+
+.idea/
+*.iml
+
+### Kotlin/Java ###
+*.log
+*.class
+*.jar
+*.war
+*.ear
