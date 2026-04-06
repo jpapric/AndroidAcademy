@@ -1,0 +1,91 @@
+--- page 21 ---
+Task 1 
+Zadatak 0: Kreiranje projekta 
+Upute: 
+1.Otvori Android Studio 
+2.Kreiraj novi projekt: 
+○Empty Activity 
+○Uključen Jetpack Compose 
+3.Pokreni aplikaciju kako bi provjerio/la da 
+sve radiZadatak 1: Izrada vlastitih komponenti 
+Zadatak: 
+ Izradi sljedeće komponente: 
+a. TitleText 
+●prima tekst kao parametar 
+●prikazuje: 
+○veći font 
+○podebljani tekst 
+○dodajte barem jednu vlastitu stilsku izmjenu 
+b. DescriptionText 
+●prima tekst kao parametar 
+●prikazuje: 
+○manji font 
+○maksimalno 3 linije 
+○dodajte barem jednu vlastitu stilsku izmjenu 
+c. CustomButton 
+●prima tekst ili ikonu 
+●koristi Button komponentu 
+●dodaj: 
+○promijeni boju teksta i pozadine 
+
+
+--- page 41 ---
+Task 2 
+Zadatak 2: Kartica (Card) 
+Zadatak: 
+ Izradi composable funkciju ItemCard  koja sadrži: 
+●Kreirajte data class MyData koja će sadržavati sve vaše podatke koje ćete prikazivati na pojedinom 
+elementu ( ID, title, description…) 
+●MyData se prosljeđuje kao parametar u composable funkciju 
+●sliku (možete koristiti Coil za učitavanje slike ili Icon za statičku ikonu) 
+●TitleText koji ste napravili u prijašnjem zadatku 
+●DescriptionText koji ste napravili u prijašnjem zadatku 
+●2 gumba (npr. favorite, save, edit) - ne trebaju biti funkcionalni 
+Dodatno: 
+●dodaj padding 
+●zaobljene rubove 
+●laganu sjenu Upute: 
+●koristi Card komponentu 
+●organiziraj sadržaj pomoću: 
+○Column (za tekst) 
+○Row (za gumbe) 
+
+
+--- page 46 ---
+Task 3 
+Zadatak 3: Lista (LazyColumn) 
+Zadatak: 
+ Izradi composable funkciju MyItemList :
+1.Prikaži listu pomoću LazyColumn 
+○za svaki element koristi ItemCard 
+○funkcija prima listu MyData elemenata  za prikaze 
+2.Dodaj gumb na screenu koji će nasumično promijeniti redoslijed elemenata u listi 
+Dodatno: 
+●dodaj razmak između kartica 
+
+--- page 61 ---
+Task 4 
+Zadatak 4: State 
+Zadatak: 
+ Dodati state u aplikaciju: 
+1.Napraviti listu MyData elemenata (STATE) - minimalno 5 elemenata 
+2.Omogući funkcionalnost za nasumičan redoslijed elemenata u listi 
+
+
+--- page 72 ---
+Task 5 
+Zadatak: 
+Napravi dva ekrana i omogućiti navigaciju između njih (kao izvor podataka koristiti listu MyData koju ste 
+napravili): 
+1. ListScreen 
+●prikazuje listu iz prethodnog zadatka 
+2. DetailScreen 
+●prikazuje: 
+○title
+○description 
+○Back button (kojim se navigira natrag na ListScreen) 
+●za odabir elementa koristi se id koji se prosljeđuje navigacijom u DetailScreen 
+BONUS: 
+Napravi search bar (koristiti TextField ) kojim se na ListScreenu filtrira lista elemenata po topicu 
+
+
