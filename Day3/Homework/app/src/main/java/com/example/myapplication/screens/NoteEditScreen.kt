@@ -1,30 +1,43 @@
 package com.example.myapplication.screens
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myapplication.model.Note
+import com.example.myapplication.presentation.NoteEditScreenState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteEditScreen(
-    note: Note?,
-    onSave: (String, String) -> Unit,
+    state: NoteEditScreenState,
+    onTitleChange: (String) -> Unit,
+    onContentChange: (String) -> Unit,
+    onSave: () -> Unit,
     onBack: () -> Unit
 ) {
-    var title by remember { mutableStateOf(note?.title ?: "") }
-    var description by remember { mutableStateOf(note?.description ?: "") }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if (note == null) "Create Note" else "Edit Note",
+                        text = if (state.editingExistingNote) "Edit Note" else "Create Note",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.SemiBold,
                         letterSpacing = 0.2.sp
@@ -46,9 +59,23 @@ fun NoteEditScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            if (state.editingExistingNote) {
+                OutlinedTextField(
+                    value = state.createdAt,
+                    onValueChange = {},
+                    label = { Text("Created at") },
+                    modifier = Modifier.fillMaxWidth(),
+                    readOnly = true,
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
+                )
+
+                Spacer(Modifier.height(12.dp))
+            }
+
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
+                value = state.title,
+                onValueChange = onTitleChange,
                 label = { Text("Title") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
@@ -58,9 +85,9 @@ fun NoteEditScreen(
             Spacer(Modifier.height(12.dp))
 
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
+                value = state.content,
+                onValueChange = onContentChange,
+                label = { Text("Content") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 120.dp),
@@ -70,13 +97,13 @@ fun NoteEditScreen(
             Spacer(Modifier.height(16.dp))
 
             Button(
-                onClick = { onSave(title, description) },
+                onClick = onSave,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text("Save")
+                Text("Done")
             }
         }
     }
