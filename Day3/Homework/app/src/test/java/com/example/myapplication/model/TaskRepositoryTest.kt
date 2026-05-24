@@ -52,6 +52,17 @@ class TaskRepositoryTest {
 
         assertTrue(repository.tasksFlow.value.isEmpty())
     }
+
+    @Test
+    fun toggleTaskCompletionMarksTaskDone() = runTest {
+        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = 12), FakeLogger())
+
+        repository.login(username = "ana", password = "secret")
+        val createdTask = (repository.createTask("Read", "Testing slides") as TaskResult.Success).value
+        repository.toggleTaskCompletion(createdTask.id)
+
+        assertTrue(repository.tasksFlow.value.first().isCompleted)
+    }
 }
 
 private class FakeTaskDataSource(

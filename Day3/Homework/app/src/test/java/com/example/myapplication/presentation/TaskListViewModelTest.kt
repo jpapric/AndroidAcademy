@@ -43,6 +43,32 @@ class TaskListViewModelTest {
         assertEquals(task, repository.deletedTask)
         assertNull(viewModel.uiState.value.taskPendingDelete)
     }
+
+    @Test
+    fun updateSearchQueryFiltersVisibleTasks() = runTest {
+        val matchingTask = Task(id = 1, title = "Write tests", body = "Repository and ViewModel")
+        val hiddenTask = Task(id = 2, title = "Buy coffee", body = "Morning errand")
+        val repository = FakeTaskRepository(
+            loadTasksResult = TaskResult.Success(listOf(matchingTask, hiddenTask))
+        )
+        val viewModel = TaskListViewModel(repository, FakeLogger())
+
+        viewModel.loadTasks()
+        viewModel.updateSearchQuery("tests")
+
+        assertEquals(listOf(matchingTask), viewModel.uiState.value.visibleTasks)
+    }
+
+    @Test
+    fun toggleTaskCompletionDelegatesToRepository() = runTest {
+        val task = Task(id = 3, title = "Tap circle", body = "Mark as done")
+        val repository = FakeTaskRepository()
+        val viewModel = TaskListViewModel(repository, FakeLogger())
+
+        viewModel.toggleTaskCompletion(task)
+
+        assertEquals(3, repository.toggledTaskId)
+    }
 }
 
 private class FakeTaskRepository(
@@ -74,5 +100,11 @@ private class FakeTaskRepository(
     override suspend fun deleteTask(task: Task): TaskResult<Unit> {
         deletedTask = task
         return TaskResult.Success(Unit)
+    }
+
+    var toggledTaskId: Int? = null
+
+    override fun toggleTaskCompletion(taskId: Int) {
+        toggledTaskId = taskId
     }
 }

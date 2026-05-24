@@ -55,6 +55,14 @@ class TaskListViewModel(
         _uiState.value = _uiState.value.copy(taskPendingDelete = task)
     }
 
+    fun updateSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(searchQuery = query)
+    }
+
+    fun toggleTaskCompletion(task: Task) {
+        taskRepository.toggleTaskCompletion(task.id)
+    }
+
     fun dismissDeleteConfirmation() {
         _uiState.value = _uiState.value.copy(taskPendingDelete = null)
     }

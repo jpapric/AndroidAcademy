@@ -18,6 +18,7 @@ interface TaskRepositoryContract {
     suspend fun createTask(title: String, body: String): TaskResult<Task>
     suspend fun updateTask(taskId: Int, title: String, body: String): TaskResult<Task>
     suspend fun deleteTask(task: Task): TaskResult<Unit>
+    fun toggleTaskCompletion(taskId: Int)
 }
 
 class TaskRepository(
@@ -100,6 +101,17 @@ class TaskRepository(
         remoteDataSource.deleteTask(authorizationHeader(), task.id)
         _tasks.value = _tasks.value.filterNot { it.id == task.id }
         logger.info("Deleted task id=${task.id}")
+    }
+
+    override fun toggleTaskCompletion(taskId: Int) {
+        logger.debug("Toggling completion for task id=$taskId")
+        _tasks.value = _tasks.value.map { task ->
+            if (task.id == taskId) {
+                task.copy(isCompleted = !task.isCompleted)
+            } else {
+                task
+            }
+        }
     }
 
     private fun authorizationHeader(): String {
