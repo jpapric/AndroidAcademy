@@ -24,6 +24,8 @@ fun TaskieNavHost(
     onAddClick: () -> Unit,
     onTaskClick: (Int) -> Unit,
     onTaskLongClick: (com.example.myapplication.model.Task) -> Unit,
+    onTaskStatusClick: (com.example.myapplication.model.Task) -> Unit,
+    onSearchQueryChange: (String) -> Unit,
     onDismissDelete: () -> Unit,
     onConfirmDelete: () -> Unit,
     onTitleChange: (String) -> Unit,
@@ -53,6 +55,9 @@ fun TaskieNavHost(
         composable(Screen.List.route) {
             TaskListScreen(
                 tasks = listState.tasks,
+                visibleTasks = listState.visibleTasks,
+                completedTasks = listState.completedTasks,
+                searchQuery = listState.searchQuery,
                 loading = listState.loading,
                 errorMessage = listState.errorMessage,
                 taskPendingDelete = listState.taskPendingDelete,
@@ -66,6 +71,8 @@ fun TaskieNavHost(
                     navController.navigate(Screen.Edit.route)
                 },
                 onTaskLongClick = onTaskLongClick,
+                onTaskStatusClick = onTaskStatusClick,
+                onSearchQueryChange = onSearchQueryChange,
                 onDismissDelete = onDismissDelete,
                 onConfirmDelete = onConfirmDelete
             )

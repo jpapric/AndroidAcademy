@@ -55,6 +55,8 @@ class MainActivity : ComponentActivity() {
                     onAddClick = taskEditViewModel::startCreatingTask,
                     onTaskClick = taskEditViewModel::loadTask,
                     onTaskLongClick = taskListViewModel::showDeleteConfirmation,
+                    onTaskStatusClick = taskListViewModel::toggleTaskCompletion,
+                    onSearchQueryChange = taskListViewModel::updateSearchQuery,
                     onDismissDelete = taskListViewModel::dismissDeleteConfirmation,
                     onConfirmDelete = taskListViewModel::deletePendingTask,
                     onTitleChange = taskEditViewModel::updateTitle,
