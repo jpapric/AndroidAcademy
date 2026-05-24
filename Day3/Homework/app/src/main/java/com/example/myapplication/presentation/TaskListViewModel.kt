@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.myapplication.model.Task
-import com.example.myapplication.model.TaskRepository
+import com.example.myapplication.model.TaskRepositoryContract
 import com.example.myapplication.model.TaskResult
 import com.example.myapplication.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TaskListViewModel(
-    private val taskRepository: TaskRepository,
+    private val taskRepository: TaskRepositoryContract,
     private val logger: Logger
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskListScreenState())
@@ -77,7 +77,7 @@ class TaskListViewModel(
 
     companion object {
         fun factory(
-            taskRepository: TaskRepository,
+            taskRepository: TaskRepositoryContract,
             logger: Logger
         ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
