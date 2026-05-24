@@ -1,19 +1,16 @@
 package com.example.myapplication.model
 
 import com.example.myapplication.data.CreateTaskRequest
-import com.example.myapplication.data.NetworkModule
 import com.example.myapplication.data.PutTaskRequest
+import com.example.myapplication.data.TaskRemoteDataSource
 import com.example.myapplication.data.TaskDto
-import com.example.myapplication.data.TaskieApi
+import com.example.myapplication.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-val taskRepository by lazy {
-    TaskRepository(NetworkModule.taskieApi)
-}
-
 class TaskRepository(
-    private val api: TaskieApi
+    private val remoteDataSource: TaskRemoteDataSource,
+    private val logger: Logger
 ) {
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
     val tasksFlow = _tasks.asStateFlow()
@@ -22,33 +19,35 @@ class TaskRepository(
     private val knownTaskIds = mutableMapOf<TaskKey, Int>()
 
     suspend fun login(username: String, password: String): TaskResult<Unit> = runApiCall {
-        authToken = api.login(
-            com.example.myapplication.data.LoginRequest(
-                username = username,
-                password = password
-            )
-        ).token
+        logger.info("Login requested")
+        authToken = remoteDataSource.login(username, password).token
+        logger.info("Login succeeded")
     }
 
     suspend fun loadTasks(): TaskResult<List<Task>> = runApiCall {
-        val loadedTasks = api.getTasks(authorizationHeader())
+        logger.debug("Loading task list")
+        val loadedTasks = remoteDataSource.getTasks(authorizationHeader())
             .tasks
             .mapIndexed { index, taskDto -> taskDto.toTask(index) }
 
         _tasks.value = loadedTasks
+        logger.debug("Loaded ${loadedTasks.size} tasks")
         loadedTasks
     }
 
     suspend fun getTask(taskId: Int): TaskResult<Task> = runApiCall {
         if (taskId < 0) {
+            logger.debug("Loading local task placeholder id=$taskId")
             return@runApiCall _tasks.value.first { it.id == taskId }
         }
 
-        api.getTask(authorizationHeader(), taskId).toTaskWithId(taskId)
+        logger.debug("Loading remote task id=$taskId")
+        remoteDataSource.getTask(authorizationHeader(), taskId).toTaskWithId(taskId)
     }
 
     suspend fun createTask(title: String, body: String): TaskResult<Task> = runApiCall {
-        val response = api.createTask(
+        logger.debug("Creating task")
+        val response = remoteDataSource.createTask(
             authorization = authorizationHeader(),
             request = CreateTaskRequest(title = title, body = body)
         )
@@ -59,13 +58,15 @@ class TaskRepository(
         )
         knownTaskIds[TaskKey(task.title, task.body, task.username)] = task.id
         _tasks.value = _tasks.value + task
+        logger.info("Created task id=${task.id}")
         task
     }
 
     suspend fun updateTask(taskId: Int, title: String, body: String): TaskResult<Task> = runApiCall {
         require(taskId >= 0) { "This task cannot be updated because the API did not return its id." }
 
-        api.updateTask(
+        logger.debug("Updating task id=$taskId")
+        remoteDataSource.updateTask(
             authorization = authorizationHeader(),
             id = taskId,
             request = PutTaskRequest(
@@ -76,14 +77,17 @@ class TaskRepository(
         )
         val task = Task(id = taskId, title = title, body = body)
         _tasks.value = _tasks.value.map { if (it.id == taskId) task else it }
+        logger.info("Updated task id=$taskId")
         task
     }
 
     suspend fun deleteTask(task: Task): TaskResult<Unit> = runApiCall {
         require(task.isRemoteEditable) { "This task cannot be deleted because the API did not return its id." }
 
-        api.deleteTask(authorizationHeader(), task.id)
+        logger.debug("Deleting task id=${task.id}")
+        remoteDataSource.deleteTask(authorizationHeader(), task.id)
         _tasks.value = _tasks.value.filterNot { it.id == task.id }
+        logger.info("Deleted task id=${task.id}")
     }
 
     private fun authorizationHeader(): String {

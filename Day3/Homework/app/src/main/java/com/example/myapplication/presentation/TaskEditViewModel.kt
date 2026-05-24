@@ -6,23 +6,26 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.myapplication.model.TaskRepository
 import com.example.myapplication.model.TaskResult
-import com.example.myapplication.model.taskRepository
+import com.example.myapplication.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TaskEditViewModel(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val logger: Logger
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TaskEditScreenState())
     val uiState = _uiState.asStateFlow()
 
     fun startCreatingTask() {
+        logger.debug("Starting task creation")
         _uiState.value = TaskEditScreenState()
     }
 
     fun loadTask(taskId: Int) {
         viewModelScope.launch {
+            logger.info("Loading task id=$taskId")
             _uiState.value = TaskEditScreenState(loading = true)
             _uiState.value = when (val result = taskRepository.getTask(taskId)) {
                 is TaskResult.Success -> TaskEditScreenState(
@@ -32,10 +35,13 @@ class TaskEditViewModel(
                     editingExistingTask = true,
                     canUpdateRemoteTask = result.value.isRemoteEditable
                 )
-                is TaskResult.Failure -> TaskEditScreenState(
-                    loading = false,
-                    errorMessage = result.message
-                )
+                is TaskResult.Failure -> {
+                    logger.error("Task loading failed: ${result.message}")
+                    TaskEditScreenState(
+                        loading = false,
+                        errorMessage = result.message
+                    )
+                }
             }
         }
     }
@@ -59,6 +65,7 @@ class TaskEditViewModel(
         }
 
         viewModelScope.launch {
+            logger.info(if (currentState.editingExistingTask) "Saving task update" else "Saving new task")
             _uiState.value = currentState.copy(saving = true, errorMessage = null)
 
             val result = if (currentState.editingExistingTask) {
@@ -74,6 +81,7 @@ class TaskEditViewModel(
 
             when (result) {
                 is TaskResult.Success -> {
+                    logger.info("Task save succeeded id=${result.value.id}")
                     _uiState.value = TaskEditScreenState(
                         taskId = result.value.id,
                         title = result.value.title,
@@ -83,19 +91,26 @@ class TaskEditViewModel(
                     )
                     onSaved()
                 }
-                is TaskResult.Failure -> _uiState.value = currentState.copy(
-                    saving = false,
-                    errorMessage = result.message
-                )
+                is TaskResult.Failure -> {
+                    logger.error("Task save failed: ${result.message}")
+                    _uiState.value = currentState.copy(
+                        saving = false,
+                        errorMessage = result.message
+                    )
+                }
             }
         }
     }
 
     companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(
+            taskRepository: TaskRepository,
+            logger: Logger
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-                TaskEditViewModel(taskRepository) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                return TaskEditViewModel(taskRepository, logger) as T
+            }
         }
     }
 }
