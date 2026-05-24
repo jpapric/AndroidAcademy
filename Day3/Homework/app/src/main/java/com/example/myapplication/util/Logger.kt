@@ -2,18 +2,18 @@ package com.example.myapplication.util
 
 import android.util.Log
 
-class Logger(
+open class Logger(
     private val tag: String
 ) {
-    fun debug(message: String) {
+    open fun debug(message: String) {
         Log.d(tag, message)
     }
 
-    fun info(message: String) {
+    open fun info(message: String) {
         Log.i(tag, message)
     }
 
-    fun error(message: String, throwable: Throwable? = null) {
+    open fun error(message: String, throwable: Throwable? = null) {
         Log.e(tag, message, throwable)
     }
 }
