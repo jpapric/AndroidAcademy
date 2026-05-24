@@ -6,13 +6,14 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.myapplication.model.TaskRepository
 import com.example.myapplication.model.TaskResult
-import com.example.myapplication.model.taskRepository
+import com.example.myapplication.util.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val logger: Logger
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(LoginScreenState())
     val uiState = _uiState.asStateFlow()
@@ -36,25 +37,34 @@ class LoginViewModel(
         }
 
         viewModelScope.launch {
+            logger.info("Submitting login")
             _uiState.value = currentState.copy(loading = true, errorMessage = null)
             when (val result = taskRepository.login(username, password)) {
                 is TaskResult.Success -> {
+                    logger.info("Login completed")
                     _uiState.value = currentState.copy(loading = false)
                     onLoggedIn()
                 }
-                is TaskResult.Failure -> _uiState.value = currentState.copy(
-                    loading = false,
-                    errorMessage = result.message
-                )
+                is TaskResult.Failure -> {
+                    logger.error("Login failed: ${result.message}")
+                    _uiState.value = currentState.copy(
+                        loading = false,
+                        errorMessage = result.message
+                    )
+                }
             }
         }
     }
 
     companion object {
-        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+        fun factory(
+            taskRepository: TaskRepository,
+            logger: Logger
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-                LoginViewModel(taskRepository) as T
+            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                return LoginViewModel(taskRepository, logger) as T
+            }
         }
     }
 }

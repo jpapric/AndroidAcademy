@@ -13,9 +13,28 @@ import com.example.myapplication.presentation.TaskListViewModel
 import com.example.myapplication.ui.theme.HomeworkTheme
 
 class MainActivity : ComponentActivity() {
-    private val loginViewModel: LoginViewModel by viewModels { LoginViewModel.Factory }
-    private val taskListViewModel: TaskListViewModel by viewModels { TaskListViewModel.Factory }
-    private val taskEditViewModel: TaskEditViewModel by viewModels { TaskEditViewModel.Factory }
+    private val appContainer by lazy {
+        (application as TaskieApplication).appContainer
+    }
+
+    private val loginViewModel: LoginViewModel by viewModels {
+        LoginViewModel.factory(
+            taskRepository = appContainer.taskRepository,
+            logger = appContainer.loginViewModelLogger
+        )
+    }
+    private val taskListViewModel: TaskListViewModel by viewModels {
+        TaskListViewModel.factory(
+            taskRepository = appContainer.taskRepository,
+            logger = appContainer.taskListViewModelLogger
+        )
+    }
+    private val taskEditViewModel: TaskEditViewModel by viewModels {
+        TaskEditViewModel.factory(
+            taskRepository = appContainer.taskRepository,
+            logger = appContainer.taskEditViewModelLogger
+        )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
