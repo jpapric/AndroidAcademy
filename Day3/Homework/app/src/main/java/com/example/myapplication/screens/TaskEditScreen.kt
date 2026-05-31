@@ -1,5 +1,6 @@
 package com.example.myapplication.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,25 +13,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.myapplication.presentation.TaskEditScreenState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskEditScreen(
     state: TaskEditScreenState,
@@ -39,195 +35,111 @@ fun TaskEditScreen(
     onSave: () -> Unit,
     onBack: () -> Unit
 ) {
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = if (state.editingExistingTask) {
-                            "Edit Task"
-                        } else {
-                            "Create Task"
-                        },
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-
-                navigationIcon = {
-                    TextButton(onClick = onBack) {
-                        Text("Back")
-                    }
-                },
-
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
-    ) { padding ->
-
-        Column(
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
+        Box(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
+                )
+                .padding(18.dp)
         ) {
-
             if (state.loading) {
-
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-
-                return@Column
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+                return@Box
             }
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-
-                shape = RoundedCornerShape(28.dp),
-
-                color = MaterialTheme.colorScheme.surface,
-
-                tonalElevation = 2.dp,
-
-                shadowElevation = 2.dp
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
+                TextButton(onClick = onBack) {
+                    Text("Back")
+                }
 
-                Column(
-                    modifier = Modifier.padding(22.dp),
-
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(30.dp),
+                    shadowElevation = 8.dp
                 ) {
-
-                    Text(
-                        text = if (state.editingExistingTask) {
-                            "Update your task"
-                        } else {
-                            "Create a new task"
-                        },
-
-                        style = MaterialTheme.typography.headlineSmall,
-
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "Keep the title clear and details actionable.",
-
-                        style = MaterialTheme.typography.bodyMedium,
-
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                        lineHeight = 20.sp
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
-                    )
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    OutlinedTextField(
-                        value = state.title,
-
-                        onValueChange = onTitleChange,
-
-                        label = {
-                            Text("Task Title")
-                        },
-
-                        placeholder = {
-                            Text("Example: Finish UI redesign")
-                        },
-
-                        modifier = Modifier.fillMaxWidth(),
-
-                        enabled = !state.saving,
-
-                        singleLine = true,
-
-                        shape = RoundedCornerShape(20.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = state.body,
-
-                        onValueChange = onBodyChange,
-
-                        label = {
-                            Text("Task Details")
-                        },
-
-                        placeholder = {
-                            Text(
-                                "Describe what needs to be done, next steps..."
-                            )
-                        },
-
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(min = 170.dp),
-
-                        enabled = !state.saving,
-
-                        shape = RoundedCornerShape(20.dp)
-                    )
-
-                    state.errorMessage?.let { error ->
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
+                    Column(modifier = Modifier.padding(22.dp)) {
                         Text(
-                            text = error,
-
+                            text = if (state.editingExistingTask) "Edit task" else "Create task",
+                            style = MaterialTheme.typography.headlineMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(6.dp))
+                        Text(
+                            text = "Keep it short, clear, and easy to act on.",
                             style = MaterialTheme.typography.bodyMedium,
-
-                            color = MaterialTheme.colorScheme.error,
-
-                            modifier = Modifier.fillMaxWidth()
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.84f)
                         )
                     }
+                }
 
-                    Spacer(modifier = Modifier.height(22.dp))
-
-                    Button(
-                        onClick = onSave,
-
-                        enabled = !state.saving &&
-                                (!state.editingExistingTask || state.canUpdateRemoteTask),
-
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(54.dp),
-
-                        shape = RoundedCornerShape(20.dp)
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(30.dp),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(22.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-
-                        Text(
-                            text = if (state.saving) {
-                                "Saving..."
-                            } else {
-                                "Save Task"
-                            },
-
-                            style = MaterialTheme.typography.titleMedium
+                        OutlinedTextField(
+                            value = state.title,
+                            onValueChange = onTitleChange,
+                            label = { Text("Task title") },
+                            placeholder = { Text("Example: Finish redesign") },
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = !state.saving,
+                            singleLine = true,
+                            shape = RoundedCornerShape(22.dp)
                         )
+
+                        OutlinedTextField(
+                            value = state.body,
+                            onValueChange = onBodyChange,
+                            label = { Text("Details") },
+                            placeholder = { Text("Describe the next steps...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 170.dp),
+                            enabled = !state.saving,
+                            shape = RoundedCornerShape(22.dp)
+                        )
+
+                        if (state.errorMessage != null) {
+                            Text(
+                                text = state.errorMessage,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+
+                        Button(
+                            onClick = onSave,
+                            enabled = !state.saving && (!state.editingExistingTask || state.canUpdateRemoteTask),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = RoundedCornerShape(22.dp)
+                        ) {
+                            Text(
+                                text = if (state.saving) "Saving..." else "Save task",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
                     }
                 }
             }
