@@ -22,7 +22,7 @@ fun TaskieNavHost(
     onLoginClick: (() -> Unit) -> Unit,
     onLoadTasks: () -> Unit,
     onAddClick: () -> Unit,
-    onTaskClick: (Int) -> Unit,
+    onTaskClick: (String) -> Unit,
     onTaskLongClick: (com.example.myapplication.model.Task) -> Unit,
     onTaskStatusClick: (com.example.myapplication.model.Task) -> Unit,
     onSearchQueryChange: (String) -> Unit,

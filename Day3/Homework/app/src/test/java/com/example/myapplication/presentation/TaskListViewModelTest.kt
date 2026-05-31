@@ -20,7 +20,7 @@ class TaskListViewModelTest {
 
     @Test
     fun loadTasksShowsLoadedTasks() = runTest {
-        val task = Task(id = 1, title = "Test ViewModel", body = "Write a unit test")
+        val task = Task(id = "task-1", title = "Test ViewModel", body = "Write a unit test")
         val repository = FakeTaskRepository(loadTasksResult = TaskResult.Success(listOf(task)))
         val viewModel = TaskListViewModel(repository, FakeLogger())
 
@@ -33,7 +33,7 @@ class TaskListViewModelTest {
 
     @Test
     fun deletePendingTaskCallsRepositoryAndClearsDialogState() = runTest {
-        val task = Task(id = 2, title = "Delete me", body = "Long press flow")
+        val task = Task(id = "task-2", title = "Delete me", body = "Long press flow")
         val repository = FakeTaskRepository()
         val viewModel = TaskListViewModel(repository, FakeLogger())
 
@@ -46,8 +46,8 @@ class TaskListViewModelTest {
 
     @Test
     fun updateSearchQueryFiltersVisibleTasks() = runTest {
-        val matchingTask = Task(id = 1, title = "Write tests", body = "Repository and ViewModel")
-        val hiddenTask = Task(id = 2, title = "Buy coffee", body = "Morning errand")
+        val matchingTask = Task(id = "task-1", title = "Write tests", body = "Repository and ViewModel")
+        val hiddenTask = Task(id = "task-2", title = "Buy coffee", body = "Morning errand")
         val repository = FakeTaskRepository(
             loadTasksResult = TaskResult.Success(listOf(matchingTask, hiddenTask))
         )
@@ -61,13 +61,13 @@ class TaskListViewModelTest {
 
     @Test
     fun toggleTaskCompletionDelegatesToRepository() = runTest {
-        val task = Task(id = 3, title = "Tap circle", body = "Mark as done")
+        val task = Task(id = "task-3", title = "Tap circle", body = "Mark as done")
         val repository = FakeTaskRepository()
         val viewModel = TaskListViewModel(repository, FakeLogger())
 
         viewModel.toggleTaskCompletion(task)
 
-        assertEquals(3, repository.toggledTaskId)
+        assertEquals("task-3", repository.toggledTaskId)
     }
 }
 
@@ -85,7 +85,7 @@ private class FakeTaskRepository(
         return loadTasksResult
     }
 
-    override suspend fun getTask(taskId: Int): TaskResult<Task> {
+    override suspend fun getTask(taskId: String): TaskResult<Task> {
         return TaskResult.Failure("Not needed")
     }
 
@@ -93,7 +93,7 @@ private class FakeTaskRepository(
         return TaskResult.Failure("Not needed")
     }
 
-    override suspend fun updateTask(taskId: Int, title: String, body: String): TaskResult<Task> {
+    override suspend fun updateTask(taskId: String, title: String, body: String): TaskResult<Task> {
         return TaskResult.Failure("Not needed")
     }
 
@@ -102,9 +102,9 @@ private class FakeTaskRepository(
         return TaskResult.Success(Unit)
     }
 
-    var toggledTaskId: Int? = null
+    var toggledTaskId: String? = null
 
-    override fun toggleTaskCompletion(taskId: Int) {
+    override fun toggleTaskCompletion(taskId: String) {
         toggledTaskId = taskId
     }
 }

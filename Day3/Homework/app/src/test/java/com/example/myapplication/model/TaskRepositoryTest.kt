@@ -17,7 +17,7 @@ class TaskRepositoryTest {
     @Test
     fun loginThenLoadTasksSavesTokenAndPublishesTasks() = runTest {
         val dataSource = FakeTaskDataSource(
-            remoteTasks = listOf(TaskDto(username = "ana", title = "Study", body = "Write tests"))
+            remoteTasks = listOf(TaskDto(id = "task-1", title = "Study", body = "Write tests"))
         )
         val repository = TaskRepository(dataSource, FakeLogger())
 
@@ -32,19 +32,19 @@ class TaskRepositoryTest {
 
     @Test
     fun createTaskAddsCreatedTaskToFlow() = runTest {
-        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = 77), FakeLogger())
+        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = "task-77"), FakeLogger())
 
         repository.login(username = "ana", password = "secret")
         val result = repository.createTask(title = "Homework", body = "Finish testing task")
 
         assertTrue(result is TaskResult.Success)
-        assertEquals(77, repository.tasksFlow.value.first().id)
+        assertEquals("task-77", repository.tasksFlow.value.first().id)
         assertEquals("Homework", repository.tasksFlow.value.first().title)
     }
 
     @Test
     fun deleteTaskRemovesTaskFromFlow() = runTest {
-        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = 10), FakeLogger())
+        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = "task-10"), FakeLogger())
 
         repository.login(username = "ana", password = "secret")
         val createdTask = (repository.createTask("Clean", "Desk") as TaskResult.Success).value
@@ -55,7 +55,7 @@ class TaskRepositoryTest {
 
     @Test
     fun toggleTaskCompletionMarksTaskDone() = runTest {
-        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = 12), FakeLogger())
+        val repository = TaskRepository(FakeTaskDataSource(createdTaskId = "task-12"), FakeLogger())
 
         repository.login(username = "ana", password = "secret")
         val createdTask = (repository.createTask("Read", "Testing slides") as TaskResult.Success).value
@@ -63,13 +63,28 @@ class TaskRepositoryTest {
 
         assertTrue(repository.tasksFlow.value.first().isCompleted)
     }
+
+    @Test
+    fun updateTaskUsesStringIdAndBodyWithoutId() = runTest {
+        val dataSource = FakeTaskDataSource(createdTaskId = "task-update")
+        val repository = TaskRepository(dataSource, FakeLogger())
+
+        repository.login(username = "ana", password = "secret")
+        repository.createTask("Old", "Body")
+        repository.updateTask("task-update", "New", "Updated body")
+
+        assertEquals("task-update", dataSource.updatedTaskId)
+        assertEquals(PutTaskRequest(title = "New", body = "Updated body"), dataSource.updateRequest)
+    }
 }
 
 private class FakeTaskDataSource(
     private val remoteTasks: List<TaskDto> = emptyList(),
-    private val createdTaskId: Int = 1
+    private val createdTaskId: String = "task-1"
 ) : TaskDataSource {
     var lastAuthorization: String? = null
+    var updatedTaskId: String? = null
+    var updateRequest: PutTaskRequest? = null
 
     override suspend fun login(username: String, password: String): LoginResponse {
         return LoginResponse(token = "token-123")
@@ -88,16 +103,18 @@ private class FakeTaskDataSource(
         return CreateTaskResponse(id = createdTaskId)
     }
 
-    override suspend fun getTask(authorization: String, id: Int): TaskDto {
+    override suspend fun getTask(authorization: String, id: String): TaskDto {
         lastAuthorization = authorization
         return remoteTasks.first()
     }
 
-    override suspend fun updateTask(authorization: String, id: Int, request: PutTaskRequest) {
+    override suspend fun updateTask(authorization: String, id: String, request: PutTaskRequest) {
         lastAuthorization = authorization
+        updatedTaskId = id
+        updateRequest = request
     }
 
-    override suspend fun deleteTask(authorization: String, id: Int) {
+    override suspend fun deleteTask(authorization: String, id: String) {
         lastAuthorization = authorization
     }
 }

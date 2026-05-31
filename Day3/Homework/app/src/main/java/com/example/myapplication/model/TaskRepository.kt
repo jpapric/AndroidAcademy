@@ -14,11 +14,11 @@ interface TaskRepositoryContract {
 
     suspend fun login(username: String, password: String): TaskResult<Unit>
     suspend fun loadTasks(): TaskResult<List<Task>>
-    suspend fun getTask(taskId: Int): TaskResult<Task>
+    suspend fun getTask(taskId: String): TaskResult<Task>
     suspend fun createTask(title: String, body: String): TaskResult<Task>
-    suspend fun updateTask(taskId: Int, title: String, body: String): TaskResult<Task>
+    suspend fun updateTask(taskId: String, title: String, body: String): TaskResult<Task>
     suspend fun deleteTask(task: Task): TaskResult<Unit>
-    fun toggleTaskCompletion(taskId: Int)
+    fun toggleTaskCompletion(taskId: String)
 }
 
 class TaskRepository(
@@ -29,7 +29,6 @@ class TaskRepository(
     override val tasksFlow = _tasks.asStateFlow()
 
     private var authToken: String? = null
-    private val knownTaskIds = mutableMapOf<TaskKey, Int>()
 
     override suspend fun login(username: String, password: String): TaskResult<Unit> = runApiCall {
         logger.info("Login requested")
@@ -39,23 +38,20 @@ class TaskRepository(
 
     override suspend fun loadTasks(): TaskResult<List<Task>> = runApiCall {
         logger.debug("Loading task list")
+        val completionById = _tasks.value.associate { task -> task.id to task.isCompleted }
         val loadedTasks = remoteDataSource.getTasks(authorizationHeader())
             .tasks
-            .mapIndexed { index, taskDto -> taskDto.toTask(index) }
+            .map { taskDto -> taskDto.toTask() }
+            .map { task -> task.copy(isCompleted = completionById[task.id] ?: false) }
 
         _tasks.value = loadedTasks
         logger.debug("Loaded ${loadedTasks.size} tasks")
         loadedTasks
     }
 
-    override suspend fun getTask(taskId: Int): TaskResult<Task> = runApiCall {
-        if (taskId < 0) {
-            logger.debug("Loading local task placeholder id=$taskId")
-            return@runApiCall _tasks.value.first { it.id == taskId }
-        }
-
+    override suspend fun getTask(taskId: String): TaskResult<Task> = runApiCall {
         logger.debug("Loading remote task id=$taskId")
-        remoteDataSource.getTask(authorizationHeader(), taskId).toTaskWithId(taskId)
+        remoteDataSource.getTask(authorizationHeader(), taskId).toTask()
     }
 
     override suspend fun createTask(title: String, body: String): TaskResult<Task> = runApiCall {
@@ -69,41 +65,41 @@ class TaskRepository(
             title = title,
             body = body
         )
-        knownTaskIds[TaskKey(task.title, task.body, task.username)] = task.id
         _tasks.value = _tasks.value + task
         logger.info("Created task id=${task.id}")
         task
     }
 
-    override suspend fun updateTask(taskId: Int, title: String, body: String): TaskResult<Task> = runApiCall {
-        require(taskId >= 0) { "This task cannot be updated because the API did not return its id." }
-
+    override suspend fun updateTask(taskId: String, title: String, body: String): TaskResult<Task> = runApiCall {
         logger.debug("Updating task id=$taskId")
         remoteDataSource.updateTask(
             authorization = authorizationHeader(),
             id = taskId,
             request = PutTaskRequest(
-                id = taskId,
                 title = title,
                 body = body
             )
         )
-        val task = Task(id = taskId, title = title, body = body)
+        val existingTask = _tasks.value.firstOrNull { it.id == taskId }
+        val task = Task(
+            id = taskId,
+            title = title,
+            body = body,
+            isCompleted = existingTask?.isCompleted ?: false
+        )
         _tasks.value = _tasks.value.map { if (it.id == taskId) task else it }
         logger.info("Updated task id=$taskId")
         task
     }
 
     override suspend fun deleteTask(task: Task): TaskResult<Unit> = runApiCall {
-        require(task.isRemoteEditable) { "This task cannot be deleted because the API did not return its id." }
-
         logger.debug("Deleting task id=${task.id}")
         remoteDataSource.deleteTask(authorizationHeader(), task.id)
         _tasks.value = _tasks.value.filterNot { it.id == task.id }
         logger.info("Deleted task id=${task.id}")
     }
 
-    override fun toggleTaskCompletion(taskId: Int) {
+    override fun toggleTaskCompletion(taskId: String) {
         logger.debug("Toggling completion for task id=$taskId")
         _tasks.value = _tasks.value.map { task ->
             if (task.id == taskId) {
@@ -119,23 +115,11 @@ class TaskRepository(
         return "Bearer $token"
     }
 
-    private fun TaskDto.toTask(index: Int): Task {
-        val knownId = knownTaskIds[TaskKey(title, body, username)]
-        return Task(
-            id = knownId ?: -(index + 1),
-            title = title,
-            body = body,
-            username = username,
-            isRemoteEditable = knownId != null
-        )
-    }
-
-    private fun TaskDto.toTaskWithId(id: Int): Task {
+    private fun TaskDto.toTask(): Task {
         return Task(
             id = id,
             title = title,
             body = body,
-            username = username,
             isRemoteEditable = true
         )
     }
@@ -153,9 +137,3 @@ private suspend inline fun <T> runApiCall(crossinline call: suspend () -> T): Ta
         TaskResult.Failure(error.message ?: "Something went wrong.")
     }
 }
-
-private data class TaskKey(
-    val title: String,
-    val body: String,
-    val username: String
-)

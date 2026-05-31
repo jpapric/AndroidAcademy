@@ -23,7 +23,7 @@ class TaskEditViewModel(
         _uiState.value = TaskEditScreenState()
     }
 
-    fun loadTask(taskId: Int) {
+    fun loadTask(taskId: String) {
         viewModelScope.launch {
             logger.info("Loading task id=$taskId")
             _uiState.value = TaskEditScreenState(loading = true)
@@ -71,7 +71,7 @@ class TaskEditViewModel(
             val result = if (currentState.editingExistingTask) {
                 val taskId = currentState.taskId
                 if (taskId == null || !currentState.canUpdateRemoteTask) {
-                    TaskResult.Failure("This task cannot be updated because the API did not return its id.")
+                    TaskResult.Failure("This task cannot be updated because its id is missing.")
                 } else {
                     taskRepository.updateTask(taskId, title, body)
                 }

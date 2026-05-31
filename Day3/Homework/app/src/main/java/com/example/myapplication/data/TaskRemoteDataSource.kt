@@ -6,9 +6,9 @@ interface TaskDataSource {
     suspend fun login(username: String, password: String): LoginResponse
     suspend fun getTasks(authorization: String): GetAllTasksResponse
     suspend fun createTask(authorization: String, request: CreateTaskRequest): CreateTaskResponse
-    suspend fun getTask(authorization: String, id: Int): TaskDto
-    suspend fun updateTask(authorization: String, id: Int, request: PutTaskRequest)
-    suspend fun deleteTask(authorization: String, id: Int)
+    suspend fun getTask(authorization: String, id: String): TaskDto
+    suspend fun updateTask(authorization: String, id: String, request: PutTaskRequest)
+    suspend fun deleteTask(authorization: String, id: String)
 }
 
 class TaskRemoteDataSource(
@@ -30,17 +30,17 @@ class TaskRemoteDataSource(
         return api.createTask(authorization, request)
     }
 
-    override suspend fun getTask(authorization: String, id: Int): TaskDto {
+    override suspend fun getTask(authorization: String, id: String): TaskDto {
         logger.debug("Fetching task id=$id")
         return api.getTask(authorization, id)
     }
 
-    override suspend fun updateTask(authorization: String, id: Int, request: PutTaskRequest) {
+    override suspend fun updateTask(authorization: String, id: String, request: PutTaskRequest) {
         logger.debug("Updating task id=$id")
         api.updateTask(authorization, id, request)
     }
 
-    override suspend fun deleteTask(authorization: String, id: Int) {
+    override suspend fun deleteTask(authorization: String, id: String) {
         logger.debug("Deleting task id=$id")
         api.deleteTask(authorization, id)
     }
