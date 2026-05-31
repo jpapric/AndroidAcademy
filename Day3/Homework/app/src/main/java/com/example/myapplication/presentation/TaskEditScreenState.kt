@@ -1,7 +1,7 @@
 package com.example.myapplication.presentation
 
 data class TaskEditScreenState(
-    val taskId: Int? = null,
+    val taskId: String? = null,
     val title: String = "",
     val body: String = "",
     val editingExistingTask: Boolean = false,

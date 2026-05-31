@@ -24,20 +24,20 @@ interface TaskieApi {
     @GET("tasks/{id}")
     suspend fun getTask(
         @Header("Authorization") authorization: String,
-        @Path("id") id: Int
+        @Path("id") id: String
     ): TaskDto
 
     @PUT("tasks/{id}")
     suspend fun updateTask(
         @Header("Authorization") authorization: String,
-        @Path("id") id: Int,
+        @Path("id") id: String,
         @Body request: PutTaskRequest
     )
 
     @DELETE("tasks/{id}")
     suspend fun deleteTask(
         @Header("Authorization") authorization: String,
-        @Path("id") id: Int
+        @Path("id") id: String
     )
 }
 
@@ -55,7 +55,7 @@ data class GetAllTasksResponse(
 )
 
 data class TaskDto(
-    val username: String,
+    val id: String,
     val title: String,
     val body: String
 )
@@ -66,11 +66,10 @@ data class CreateTaskRequest(
 )
 
 data class CreateTaskResponse(
-    val id: Int
+    val id: String
 )
 
 data class PutTaskRequest(
-    val id: Int,
     val title: String,
     val body: String
 )
