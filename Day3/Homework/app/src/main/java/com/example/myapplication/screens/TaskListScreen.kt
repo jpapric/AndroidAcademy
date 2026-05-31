@@ -21,18 +21,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -69,108 +64,62 @@ fun TaskListScreen(
     onDismissDelete: () -> Unit,
     onConfirmDelete: () -> Unit
 ) {
-
     Scaffold(
-        containerColor = Color.Transparent,
-
+        containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onAdd,
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape
+                shape = RoundedCornerShape(22.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = "Add task"
-                )
+                Text("+", fontSize = 28.sp, fontWeight = FontWeight.Bold)
             }
         }
-
     ) { padding ->
-
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.05f)
-                        )
-                    )
-                )
                 .padding(padding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
         ) {
-
             when {
-
-                loading -> {
-
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                errorMessage != null && tasks.isEmpty() -> {
-
-                    ErrorContent(
-                        message = errorMessage,
-                        onRetry = onRetry,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-                }
-
-                else -> {
-
-                    TaskListContent(
-                        tasks = tasks,
-                        visibleTasks = visibleTasks,
-                        completedTasks = completedTasks,
-                        searchQuery = searchQuery,
-                        errorMessage = errorMessage,
-                        onSearchQueryChange = onSearchQueryChange,
-                        onTaskClick = onTaskClick,
-                        onTaskLongClick = onTaskLongClick,
-                        onTaskStatusClick = onTaskStatusClick
-                    )
-                }
+                loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                errorMessage != null && tasks.isEmpty() -> ErrorContent(
+                    message = errorMessage,
+                    onRetry = onRetry,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                else -> TaskListContent(
+                    tasks = tasks,
+                    visibleTasks = visibleTasks,
+                    completedTasks = completedTasks,
+                    searchQuery = searchQuery,
+                    errorMessage = errorMessage,
+                    onSearchQueryChange = onSearchQueryChange,
+                    onTaskClick = onTaskClick,
+                    onTaskLongClick = onTaskLongClick,
+                    onTaskStatusClick = onTaskStatusClick
+                )
             }
         }
     }
 
     if (taskPendingDelete != null) {
-
         AlertDialog(
             onDismissRequest = onDismissDelete,
-
-            title = {
-                Text("Delete task?")
-            },
-
-            text = {
-                Text(taskPendingDelete.title)
-            },
-
+            title = { Text("Delete task?") },
+            text = { Text(taskPendingDelete.title) },
             confirmButton = {
-
-                TextButton(
-                    onClick = onConfirmDelete
-                ) {
+                TextButton(onClick = onConfirmDelete) {
                     Text("Delete")
                 }
             },
-
             dismissButton = {
-
-                TextButton(
-                    onClick = onDismissDelete
-                ) {
+                TextButton(onClick = onDismissDelete) {
                     Text("Cancel")
                 }
             },
-
             shape = RoundedCornerShape(24.dp)
         )
     }
@@ -191,15 +140,20 @@ private fun TaskListContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 18.dp, top = 22.dp, end = 18.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+        contentPadding = PaddingValues(start = 18.dp, top = 18.dp, end = 18.dp, bottom = 96.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            TaskDashboardHeader(
-                searchQuery = searchQuery,
+            HeroHeader(
                 totalTasks = tasks.size,
                 visibleTasks = visibleTasks.size,
-                completedTasks = completedTasks,
+                completedTasks = completedTasks
+            )
+        }
+
+        item {
+            SearchBox(
+                searchQuery = searchQuery,
                 onSearchQueryChange = onSearchQueryChange
             )
         }
@@ -209,13 +163,13 @@ private fun TaskListContent(
                 Surface(
                     color = MaterialTheme.colorScheme.errorContainer,
                     contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(20.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = errorMessage,
                         style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(14.dp)
+                        modifier = Modifier.padding(16.dp)
                     )
                 }
             }
@@ -225,13 +179,13 @@ private fun TaskListContent(
             tasks.isEmpty() -> item {
                 EmptyState(
                     title = "No tasks yet",
-                    body = "Create your first task and it will appear here."
+                    body = "Tap + to create your first task."
                 )
             }
             visibleTasks.isEmpty() -> item {
                 EmptyState(
                     title = "No matching tasks",
-                    body = "Try another title, body, active, or done keyword."
+                    body = "Try another search phrase."
                 )
             }
             else -> items(
@@ -250,119 +204,116 @@ private fun TaskListContent(
 }
 
 @Composable
-private fun TaskDashboardHeader(
-    searchQuery: String,
+private fun HeroHeader(
     totalTasks: Int,
     visibleTasks: Int,
-    completedTasks: Int,
-    onSearchQueryChange: (String) -> Unit
+    completedTasks: Int
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(14.dp),
-        modifier = Modifier.fillMaxWidth()
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(32.dp),
+        color = Color.Transparent,
+        shadowElevation = 10.dp
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface,
-            shape = RoundedCornerShape(26.dp),
-            tonalElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
+        Box(
+            modifier = Modifier
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.colorScheme.secondary
+                        )
+                    )
+                )
+                .padding(24.dp)
         ) {
-            Column(modifier = Modifier.padding(22.dp)) {
+            Column {
                 Text(
                     text = "Today",
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = if (totalTasks == 0) "Ready for your first task" else "Task list",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.SemiBold
+                    text = if (totalTasks == 0) "Plan something good" else "Your task board",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = if (totalTasks == 0) {
-                        "Create a task and keep your day moving."
+                        "A clean space for everything you need to finish."
                     } else {
                         "$completedTasks completed, ${totalTasks - completedTasks} active"
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.86f),
+                    style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SummaryPill(label = "Total", value = totalTasks.toString())
-                    SummaryPill(label = "Shown", value = visibleTasks.toString())
+                Spacer(Modifier.height(18.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    HeaderPill(label = "Total", value = totalTasks.toString())
+                    HeaderPill(label = "Shown", value = visibleTasks.toString())
                 }
             }
         }
+    }
+}
 
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            shape = RoundedCornerShape(24.dp),
-            tonalElevation = 1.dp,
-            modifier = Modifier.fillMaxWidth()
+@Composable
+private fun HeaderPill(
+    label: String,
+    value: String
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.16f),
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            TextField(
-                value = searchQuery,
-                onValueChange = onSearchQueryChange,
-                modifier = Modifier
-                    .fillMaxWidth(),
-                placeholder = {
-                    Text("Search tasks...")
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Search,
-                        contentDescription = null
-                    )
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(20.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor =
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
-
-                    unfocusedContainerColor =
-                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium
             )
         }
     }
 }
 
 @Composable
-private fun SummaryPill(
-    label: String,
-    value: String
+private fun SearchBox(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit
 ) {
     Surface(
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        shape = RoundedCornerShape(16.dp)
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(28.dp),
+        shadowElevation = 4.dp,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+        TextField(
+            value = searchQuery,
+            onValueChange = onSearchQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search tasks...") },
+            singleLine = true,
+            shape = RoundedCornerShape(28.dp),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        )
     }
 }
 
@@ -375,20 +326,18 @@ private fun TaskCard(
     onTaskStatusClick: (Task) -> Unit
 ) {
     Card(
-        shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
-        ),
-        modifier = Modifier.combinedClickable(
-            onClick = { onTaskClick(task) },
-            onLongClick = { onTaskLongClick(task) }
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = { onTaskClick(task) },
+                onLongClick = { onTaskLongClick(task) }
+            ),
+        shape = RoundedCornerShape(28.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.padding(18.dp),
             verticalAlignment = Alignment.Top
         ) {
             StatusCircle(
@@ -401,7 +350,7 @@ private fun TaskCard(
                     Text(
                         text = task.title,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
@@ -409,7 +358,7 @@ private fun TaskCard(
                     Spacer(Modifier.width(10.dp))
                     StatusPill(completed = task.isCompleted)
                 }
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(8.dp))
                 Text(
                     text = task.body,
                     style = MaterialTheme.typography.bodyMedium,
@@ -429,7 +378,7 @@ private fun StatusCircle(
 ) {
     Box(
         modifier = Modifier
-            .size(30.dp)
+            .size(32.dp)
             .clip(CircleShape)
             .background(
                 if (completed) {
@@ -482,20 +431,20 @@ private fun EmptyState(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(24.dp),
-        tonalElevation = 1.dp,
+        shape = RoundedCornerShape(28.dp),
+        shadowElevation = 4.dp,
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 150.dp)
     ) {
         Column(
-            modifier = Modifier.padding(22.dp),
+            modifier = Modifier.padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(6.dp))
             Text(
@@ -525,7 +474,7 @@ private fun ErrorContent(
         )
         Button(
             onClick = onRetry,
-            shape = RoundedCornerShape(18.dp)
+            shape = RoundedCornerShape(20.dp)
         ) {
             Text("Retry")
         }
