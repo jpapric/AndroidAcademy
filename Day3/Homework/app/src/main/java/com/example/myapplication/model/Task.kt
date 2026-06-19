@@ -6,5 +6,6 @@ data class Task(
     val body: String,
     val username: String = "",
     val isRemoteEditable: Boolean = true,
-    val isCompleted: Boolean = false
+    val isCompleted: Boolean = false,
+    val isPendingSync: Boolean = false
 )

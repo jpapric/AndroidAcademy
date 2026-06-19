@@ -12,9 +12,11 @@ interface TaskDataSource {
 }
 
 class TaskRemoteDataSource(
-    private val api: TaskieApi,
+    apiProvider: () -> TaskieApi,
     private val logger: Logger
 ) : TaskDataSource {
+    private val api: TaskieApi by lazy(apiProvider)
+
     override suspend fun login(username: String, password: String): LoginResponse {
         logger.info("Logging in user=$username")
         return api.login(LoginRequest(username = username, password = password))

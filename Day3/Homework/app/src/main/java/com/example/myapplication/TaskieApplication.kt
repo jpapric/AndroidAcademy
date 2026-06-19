@@ -5,6 +5,6 @@ import com.example.myapplication.di.AppContainer
 
 class TaskieApplication : Application() {
     val appContainer by lazy {
-        AppContainer()
+        AppContainer(this)
     }
 }
