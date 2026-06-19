@@ -5,8 +5,10 @@ import com.example.myapplication.MainDispatcherRule
 import com.example.myapplication.model.Task
 import com.example.myapplication.model.TaskRepositoryContract
 import com.example.myapplication.model.TaskResult
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -59,6 +61,7 @@ class TaskListViewModelTest {
         assertEquals(listOf(matchingTask), viewModel.uiState.value.visibleTasks)
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun toggleTaskCompletionDelegatesToRepository() = runTest {
         val task = Task(id = "task-3", title = "Tap circle", body = "Mark as done")
@@ -66,6 +69,7 @@ class TaskListViewModelTest {
         val viewModel = TaskListViewModel(repository, FakeLogger())
 
         viewModel.toggleTaskCompletion(task)
+        advanceUntilIdle()
 
         assertEquals("task-3", repository.toggledTaskId)
     }
@@ -104,7 +108,7 @@ private class FakeTaskRepository(
 
     var toggledTaskId: String? = null
 
-    override fun toggleTaskCompletion(taskId: String) {
+    override suspend fun toggleTaskCompletion(taskId: String) {
         toggledTaskId = taskId
     }
 }

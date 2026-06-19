@@ -60,7 +60,9 @@ class TaskListViewModel(
     }
 
     fun toggleTaskCompletion(task: Task) {
-        taskRepository.toggleTaskCompletion(task.id)
+        viewModelScope.launch {
+            taskRepository.toggleTaskCompletion(task.id)
+        }
     }
 
     fun dismissDeleteConfirmation() {
